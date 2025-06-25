@@ -19,6 +19,7 @@ public class ItemControllerTests
 
     }
 
+    #region Post
     [Fact]
     public async Task Post_InformadosDadosValidos_DeveRetornarCreatedResult()
     {
@@ -58,4 +59,50 @@ public class ItemControllerTests
 
         Assert.IsType<BadRequestObjectResult>(result);
     }
+    #endregion Post
+
+    #region Patch
+    [Fact]
+    public async Task Patch_InformadosDadosValidos_DeveRetornarOk()
+    {
+        var guid = Guid.NewGuid();
+
+        var command = new UpdateItemCommand
+        {
+            Id = guid,
+            Nome = "Novo nome",
+            Descricao = "Nova descricao",
+            Disponivel = true,
+            NomeCategoria = "CategoriaB",
+            Preco = 1.00m
+        };
+        _senderMock.Setup(m => m.Send(It.IsAny<UpdateItemCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(guid);
+
+        var result = _sut.Patch(command);
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        var resultValue = await ((Task<Guid>)okResult.Value!)!;
+
+        Assert.Equal(guid, resultValue);
+    }
+
+    [Fact]
+    public void Patch_DadosInvalidos_DeveRetornarBadRequest()
+    {
+        var guid = Guid.Empty;
+        var command = new UpdateItemCommand
+        {
+            Id = guid,
+            Nome = "Novo Item com nome grande justamente pra que a validação falhe"
+        };
+
+        _senderMock
+            .Setup(m => m.Send(It.IsAny<UpdateItemCommand>(), It.IsAny<CancellationToken>()))
+            .Throws(new ValidationException(new List<string>()));
+
+        var result = _sut.Patch(command);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+    #endregion Patch
 }

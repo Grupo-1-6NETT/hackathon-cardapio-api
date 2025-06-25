@@ -4,17 +4,17 @@ using MediatR;
 using Microsoft.Extensions.Configuration;
 
 namespace Application.Commands;
-public class AddItemHandler(IRabbitMqService rabbitMq, IConfiguration config) : IRequestHandler<AddItemCommand, Guid>
+public class UpdateItemHandler(IRabbitMqService rabbitMq, IConfiguration config) : IRequestHandler<UpdateItemCommand, Guid>
 {
-    private readonly string _queue = config["RabbitMQ:AddItemQueueName"] ?? "additem";
+    private readonly string _queue = config["RabbitMQ:UpdateItemQueueName"] ?? "updateitem";
 
-    public Task<Guid> Handle(AddItemCommand request, CancellationToken cancellationToken)
+    public Task<Guid> Handle(UpdateItemCommand request, CancellationToken cancellationToken)
     {
         request.Validate();
 
-        var item = new AddItemDto
+        var item = new UpdateItemDto
         {
-            TransportId = Guid.NewGuid(),
+            Id = request.Id,
             Nome = request.Nome,
             Descricao = request.Descricao,
             Disponivel = request.Disponivel,
@@ -24,6 +24,6 @@ public class AddItemHandler(IRabbitMqService rabbitMq, IConfiguration config) : 
 
         rabbitMq.Publish(item, _queue);
 
-        return Task.FromResult(item.TransportId);
+        return Task.FromResult(item.Id);
     }
 }

@@ -6,13 +6,13 @@ using Microsoft.Extensions.Configuration;
 using Moq;
 
 namespace UnitTests.Application;
-public class AddItemHandlerTests
+public class UpdateItemHandlerTests
 {
     private readonly Mock<IRabbitMqService> _rabbitMqServiceMock;
     private readonly Mock<IConfiguration> _configurationMock;
-    private readonly AddItemHandler _sut;
+    private readonly UpdateItemHandler _sut;
 
-    public AddItemHandlerTests()
+    public UpdateItemHandlerTests()
     {
         _rabbitMqServiceMock = new Mock<IRabbitMqService>();
         _configurationMock = new Mock<IConfiguration>();
@@ -22,18 +22,20 @@ public class AddItemHandlerTests
     [Fact]
     public async Task Handle_InformadosDadosValidos_DeveRetornarOk()
     {
-        var command = new AddItemCommand
+        var guid = Guid.NewGuid();
+        var command = new UpdateItemCommand
         {
-            Nome = "Novo Item",
+            Id = guid,
+            Nome = "Novo nome",
             Descricao = "Test",
             Disponivel = true,
-            NomeCategoria = "CategoriaA",
+            NomeCategoria = "CategoriaB",
             Preco = 1.00m
         };
 
         var result = await _sut.Handle(command, CancellationToken.None);
 
-        _rabbitMqServiceMock.Verify(x => x.Publish(It.IsAny<AddItemDto>(), It.IsAny<string>()), Times.Once);
+        _rabbitMqServiceMock.Verify(x => x.Publish(It.IsAny<UpdateItemDto>(), It.IsAny<string>()), Times.Once);
 
         _rabbitMqServiceMock.Invocations.Clear();
     }
@@ -41,7 +43,7 @@ public class AddItemHandlerTests
     [Fact]
     public async Task Handle_InformadosDadosInvalidos_ValidationException()
     {
-        var command = new AddItemCommand
+        var command = new UpdateItemCommand
         {
             Nome = "Novo Item com nome grande justamente pra que a validação falhe"
         };

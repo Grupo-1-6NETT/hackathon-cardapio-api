@@ -2,9 +2,9 @@
 using FluentValidation;
 
 namespace Application.Validators;
-public class ModelItemValidator : AbstractValidator<AddItemCommand>
+public class AddItemValidator : AbstractValidator<AddItemCommand>
 {
-    public ModelItemValidator()
+    public AddItemValidator()
     {
         RuleFor(i => i.Nome)
             .NotEmpty().WithMessage("Nome é obrigatório")
