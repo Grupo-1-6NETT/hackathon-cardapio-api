@@ -39,11 +39,11 @@ public class ItemController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Authorize]
     [HttpPost]
-    public IActionResult Post([FromBody] AddItemCommand request)
+    public async Task<IActionResult> Post([FromBody] AddItemCommand request)
     {
 		try
 		{
-			var itemId = sender.Send(request);
+			var itemId = await sender.Send(request);
 			return Created("", itemId);
 		}
 		catch (ValidationException ex)
@@ -87,12 +87,49 @@ public class ItemController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Authorize]
     [HttpPatch]
-    public IActionResult Patch([FromBody] UpdateItemCommand request)
+    public async Task<IActionResult> Patch([FromBody] UpdateItemCommand request)
     {
         try
         {
-            var itemId = sender.Send(request);
+            var itemId = await sender.Send(request);
             return Ok(itemId);
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new { ex.Errors });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { Message = $"Ocorreu um erro interno no servidor." });
+        }
+    }
+
+    /// <summary>
+    /// Remove o item na base de dados com o ID informado
+    /// </summary>
+    /// <param name="id">O ID do item a ser removido</param>
+    /// <returns>Resultado da operação de remoção</returns>
+    /// <response code="200">Item removido com sucesso</response>
+    /// <response code="401">Usuário não autenticado</response>
+    /// <response code="403">Usuário não autorizado</response>
+    /// <response code="404">Item não encontrado</response>
+    /// <response code="500">Erro inesperado</response>
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [Authorize]
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        try
+        {
+            var command = new DeleteItemCommand(id);
+            await sender.Send(command);
+
+            return Ok($"Item com {id} enviado para remoção.");
         }
         catch (ValidationException ex)
         {

@@ -36,15 +36,14 @@ public class ItemControllerTests
         _senderMock.Setup(m => m.Send(It.IsAny<AddItemCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(guid);
 
-        var result = _sut.Post(command);
-        var createdResult = Assert.IsType<CreatedResult>(result);
-        var resultValue = await ((Task<Guid>)createdResult.Value!)!;
+        var result = await _sut.Post(command);
+        var createdResult = Assert.IsType<CreatedResult>(result);        
 
-        Assert.Equal(guid, resultValue);
+        Assert.Equal(guid, createdResult.Value);
     }
 
     [Fact]
-    public void Post_DadosInvalidos_DeveRetornarBadRequest()
+    public async Task Post_DadosInvalidos_DeveRetornarBadRequest()
     {
         var command = new AddItemCommand
         {
@@ -55,7 +54,7 @@ public class ItemControllerTests
             .Setup(m => m.Send(It.IsAny<AddItemCommand>(), It.IsAny<CancellationToken>()))
             .Throws(new ValidationException(new List<string>()));
 
-        var result = _sut.Post(command);
+        var result = await _sut.Post(command);
 
         Assert.IsType<BadRequestObjectResult>(result);
     }
@@ -79,15 +78,14 @@ public class ItemControllerTests
         _senderMock.Setup(m => m.Send(It.IsAny<UpdateItemCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(guid);
 
-        var result = _sut.Patch(command);
-        var okResult = Assert.IsType<OkObjectResult>(result);
-        var resultValue = await ((Task<Guid>)okResult.Value!)!;
+        var result = await _sut.Patch(command);
+        var okResult = Assert.IsType<OkObjectResult>(result);        
 
-        Assert.Equal(guid, resultValue);
+        Assert.Equal(guid, okResult.Value);
     }
 
     [Fact]
-    public void Patch_DadosInvalidos_DeveRetornarBadRequest()
+    public async Task Patch_DadosInvalidos_DeveRetornarBadRequest()
     {
         var guid = Guid.Empty;
         var command = new UpdateItemCommand
@@ -100,9 +98,40 @@ public class ItemControllerTests
             .Setup(m => m.Send(It.IsAny<UpdateItemCommand>(), It.IsAny<CancellationToken>()))
             .Throws(new ValidationException(new List<string>()));
 
-        var result = _sut.Patch(command);
+        var result = await _sut.Patch(command);
 
         Assert.IsType<BadRequestObjectResult>(result);
     }
     #endregion Patch
+
+    #region Delete
+    [Fact]
+    public async Task Delete_InformadosDadosValidos_DeveRetornarOk()
+    {
+        var guid = Guid.NewGuid();
+        
+        _senderMock.Setup(m => m.Send(It.IsAny<DeleteItemCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(guid);
+
+        var result = await _sut.Delete(guid);
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        var resultValue = ((string)okResult.Value!)!;
+
+        Assert.Equal($"Item com {guid} enviado para remoção.", resultValue);
+    }
+
+    [Fact]
+    public async Task Delete_DadosInvalidos_DeveRetornarBadRequest()
+    {
+        var guid = Guid.Empty;
+
+        _senderMock
+            .Setup(m => m.Send(It.IsAny<DeleteItemCommand>(), It.IsAny<CancellationToken>()))
+            .Throws(new ValidationException(new List<string>()));
+
+        var result = await _sut.Delete(guid);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+    #endregion Delete
 }
