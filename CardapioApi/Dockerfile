@@ -13,15 +13,15 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copia os arquivos .csproj primeiro para aproveitar o cache de camadas do Docker
-COPY ["CardapioApi/CardapioApi.csproj", "API/"]
+COPY ["CardapioApi/CardapioApi.csproj", "CardapioApi/"]
 COPY ["Application/Application.csproj", "Application/"]
-COPY ["Domain.csproj", "Domain/"]
+COPY ["Domain/Domain.csproj", "Domain/"]
 
 RUN dotnet restore "CardapioApi/CardapioApi.csproj"
 
 # Copia o restante dos arquivos
 COPY . .
-WORKDIR "src/API"
+WORKDIR "/src/CardapioApi"
 RUN dotnet publish -c Release -o /app/publish  
 
 # Runtime
