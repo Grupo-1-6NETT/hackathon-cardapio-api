@@ -52,3 +52,8 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+/.vs
+/CardapioApi/.vs/CardapioApi
+/CardapioApi/.vs/ProjectEvaluation
+/CardapioApi/CardapioApi/appsettings.Development.json
+/CardapioApi/CardapioApi/CardapioApi.csproj.user
