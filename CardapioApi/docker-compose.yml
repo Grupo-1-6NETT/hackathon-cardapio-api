@@ -1,5 +1,5 @@
 services:
-  adicionarcontatos: 
+  cardapioapi: 
     build:
       context: .
       dockerfile: Dockerfile
